@@ -1,6 +1,6 @@
 /*
     This exercise has been updated to use Solidity version 0.5
-    Breaking changes from 0.4 to 0.5 can be found here: 
+    Breaking changes from 0.4 to 0.5 can be found here:
     https://solidity.readthedocs.io/en/v0.5.0/050-breaking-changes.html
 */
 
@@ -11,20 +11,20 @@ contract SimpleBank {
     //
     // State variables
     //
-    
+
     /* Fill in the keyword. Hint: We want to protect our users balance from other contracts*/
     mapping (address => uint) private balances;
-    
+
     /* Fill in the keyword. We want to create a getter function and allow contracts to be able to see if a user is enrolled.  */
     mapping (address => bool) public enrolled;
 
     /* Let's make sure everyone knows who owns the bank. Use the appropriate keyword for this*/
     address public owner;
-    
+
     //
     // Events - publicize actions to external listeners
     //
-    
+
     /* Add an argument for this event, an accountAddress */
     event LogEnrolled(address accountAddress);
 
@@ -76,7 +76,7 @@ contract SimpleBank {
     /// @return The balance of the user after the deposit is made
     // Add the appropriate keyword so that this function can receive ether
     // Use the appropriate global variables to get the transaction sender and value
-    // Emit the appropriate event    
+    // Emit the appropriate event
     // Users should be enrolled before they can make deposits
     function deposit() public payable returns (uint) {
         /* Add the amount to the user's balance, call the event associated with a deposit,
@@ -91,17 +91,25 @@ contract SimpleBank {
     /// @dev This does not return any excess ether sent to it
     /// @param withdrawAmount amount you want to withdraw
     /// @return The balance remaining for the user
-    // Emit the appropriate event    
+    // Emit the appropriate event
     function withdraw(uint withdrawAmount) public returns (uint) {
         /* If the sender's balance is at least the amount they want to withdraw,
            Subtract the amount from the sender's balance, and try to send that amount of ether
-           to the user attempting to withdraw. 
+           to the user attempting to withdraw.
            return the user's balance.*/
            require(balances[msg.sender] >= withdrawAmount);
+           //uint balance = balances[msg.sender]- withdrawAmount;
+           //balances[msg.sender] = balance;
            balances[msg.sender]-= withdrawAmount;
            msg.sender.transfer(withdrawAmount);
-           emit LogWithdrawal(msg.sender, withdrawAmount, balances[msg.sender]);
+           //(bool success, ) = msg.sender.call.value(withdrawAmount)("");
+           /*if(success){
+               emit LogWithdrawal(msg.sender, withdrawAmount, balance);
+           }else {
+               balances[msg.sender]+= withdrawAmount;
+           }*/
            return balances[msg.sender];
+           //return balance;
     }
 
 }

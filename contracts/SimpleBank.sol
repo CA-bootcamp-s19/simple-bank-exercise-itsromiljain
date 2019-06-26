@@ -98,18 +98,10 @@ contract SimpleBank {
            to the user attempting to withdraw.
            return the user's balance.*/
            require(balances[msg.sender] >= withdrawAmount);
-           //uint balance = balances[msg.sender]- withdrawAmount;
-           //balances[msg.sender] = balance;
            balances[msg.sender]-= withdrawAmount;
            msg.sender.transfer(withdrawAmount);
-           //(bool success, ) = msg.sender.call.value(withdrawAmount)("");
-           /*if(success){
-               emit LogWithdrawal(msg.sender, withdrawAmount, balance);
-           }else {
-               balances[msg.sender]+= withdrawAmount;
-           }*/
+           emit LogWithdrawal(msg.sender, withdrawAmount, balances[msg.sender]);
            return balances[msg.sender];
-           //return balance;
     }
 
 }

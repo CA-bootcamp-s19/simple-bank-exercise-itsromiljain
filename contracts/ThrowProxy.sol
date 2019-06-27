@@ -14,13 +14,13 @@ contract ThrowProxy {
         data = msg.data;
     }
 
-    function execute() public returns(bool) {
+    /*function execute() public returns(bool) {
         (bool res, ) = target.call(data);
         return res;
-    }
+    }*/
 
-    /*function execute(uint val) public returns(bool) {
+    function execute(uint val) public returns(bool) {
         (bool res, ) = target.call.value(val)(data);
          return res;
-    }*/
+    }
 }

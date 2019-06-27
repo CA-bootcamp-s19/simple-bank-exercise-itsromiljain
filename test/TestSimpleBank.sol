@@ -5,26 +5,40 @@ import "truffle/DeployedAddresses.sol";
 import "../contracts/SimpleBank.sol";
 import "../contracts/ThrowProxy.sol";
 import "../contracts/CustomerOne.sol";
+import "../contracts/CustomerTwo.sol";
 
 contract TestSimpleBank {
+    uint public initialBalance = 1 ether;
 
     SimpleBank simpleBankInstance;
     ThrowProxy proxy;
     CustomerOne customerOne;
+    CustomerTwo customerTwo;
+    address accountAddress;
 
-    uint public initialBalance = 1 ether;
+    event LogTestEnroll(bool returnValue, bool expectedValue);
+    event LogTestDeposit(uint returnBalance, uint expectedBalance);
+    event LogTestWithdraw(uint returnBalance, uint expectedBalance);
+    event LogTestDepositNotEnrolled(bool res);
+
+    constructor() public payable {}
 
     function beforeAll() public{
        simpleBankInstance = SimpleBank(DeployedAddresses.SimpleBank());
        proxy = new ThrowProxy(address(simpleBankInstance));
-
+        
        address(customerOne).transfer(500 wei);
        customerOne = (new CustomerOne).value(200 wei)();
+
+       address(customerTwo).transfer(500 wei);
+       customerTwo = (new CustomerTwo).value(200 wei)();
+       accountAddress = address(this);
     }
 
     function testEnroll() public {
         bool returnValue = customerOne.enroll(simpleBankInstance);
         bool expectedValue = simpleBankInstance.enrolled(address(customerOne));
+        emit LogTestEnroll(returnValue, expectedValue);
         Assert.equal(returnValue, expectedValue, "Account should be enrolled");
     }
 
@@ -32,6 +46,7 @@ contract TestSimpleBank {
         uint depositAmount = 10 wei;
         uint returnBalance = customerOne.deposit(simpleBankInstance, depositAmount);
         uint expectedBalance = customerOne.getBalance(simpleBankInstance);
+        emit LogTestDeposit(returnBalance, expectedBalance);
         Assert.equal(returnBalance, expectedBalance, "Account Balance should match after Deposit");
     }
 
@@ -39,15 +54,21 @@ contract TestSimpleBank {
         uint withdrawAmount = 5 wei;
         uint returnBalance = customerOne.withdraw(simpleBankInstance, withdrawAmount);
         uint expectedBalance = customerOne.getBalance(simpleBankInstance);
-         Assert.equal(returnBalance, expectedBalance, "Account Balance should match after withdrawl");
+        emit LogTestWithdraw(returnBalance, expectedBalance);
+        Assert.equal(returnBalance, expectedBalance, "Account Balance should match after withdrawl");
     }
 
     function testDepositWhenUserIsNotEnrolled() public {
         uint depositAmount = 5 wei;
-        address(proxy).transfer(500 wei);
-        SimpleBank(address(proxy)).deposit.value(depositAmount)();
-        bool res = proxy.execute.gas(20000)();
+        //customerTwo.deposit(SimpleBank(address(proxy)), depositAmount);
+        //bool res = proxy.execute();
+        //(bool res, ) = address(customerTwo).call(abi.encodeWithSignature("deposit(address,uint)", simpleBankInstance, depositAmount));
+        SimpleBank(address(proxy)).deposit();
+        bool res = proxy.execute.gas(200000)(depositAmount);
+        emit LogTestDepositNotEnrolled(res);
         Assert.isFalse(res, "User is not Enrolled");
     }
+
+    function() external {}
 
 }
